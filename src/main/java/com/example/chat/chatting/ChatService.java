@@ -1,9 +1,6 @@
 package com.example.chat.chatting;
 
-import com.example.chat.chatting.domain.ChatRoom;
-import com.example.chat.chatting.domain.ChatRoomRepository;
-import com.example.chat.chatting.domain.MemberChatRoomMapping;
-import com.example.chat.chatting.domain.MemberChatRoomMappingRepository;
+import com.example.chat.chatting.domain.*;
 import com.example.chat.member.domain.Member;
 import com.example.chat.member.domain.MemberRepository;
 import com.sun.jdi.request.DuplicateRequestException;
@@ -22,6 +19,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final MemberChatRoomMappingRepository memberChatRoomMappingRepository;
     private final MemberRepository memberRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
     @Transactional
     public ChatRoom createChatRoom(UUID originMemberUUID, UUID destMemberUUID) {
@@ -71,5 +69,18 @@ public class ChatService {
         }));
 
         return chatRooms;
+    }
+
+    @Transactional
+    public ChatMessage createMessage(String message, UUID senderUUID, UUID chatRoomUUID){
+        Member sender = memberRepository.findByUuid(senderUUID)
+                .orElseThrow(() -> new NoSuchElementException());
+
+        ChatRoom chatRoom = chatRoomRepository.findByUuid(chatRoomUUID)
+                .orElseThrow(() -> new NoSuchElementException());
+
+        ChatMessage chatMessage = ChatMessage.create(message, chatRoom, sender);
+        chatMessageRepository.save(chatMessage);
+        return chatMessage;
     }
 }
